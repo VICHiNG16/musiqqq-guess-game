@@ -1,0 +1,38 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.app__title {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.status {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status--checking {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.status--ok {
+  background-color: #064e3b;
+  color: #6ee7b7;
+}
+
+.status--error {
+  background-color: #7f1d1d;
+  color: #fca5a5;
+}
