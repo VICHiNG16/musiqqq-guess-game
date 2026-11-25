@@ -1,0 +1,154 @@
+{
+  "info": {
+    "_postman_id": "a7f1c3e0-9b2d-4e51-8c33-112233445566",
+    "name": "Musiqqq the Guess Game",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "sessionId",
+      "value": ""
+    },
+    {
+      "key": "firstOptionId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Start Game",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const data = pm.response.json();",
+              "if (data.sessionId) {",
+              "  pm.collectionVariables.set('sessionId', data.sessionId);",
+              "}",
+              "if (data.rounds && data.rounds[0] && data.rounds[0].options && data.rounds[0].options[0]) {",
+              "  pm.collectionVariables.set('firstOptionId', data.rounds[0].options[0].id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"category\": \"pop\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/game/start",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "game",
+            "start"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Answer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"roundIndex\": 0,\n  \"selectedId\": {{firstOptionId}},\n  \"remainingSeconds\": 20\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/game/answer",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "game",
+            "answer"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Add Score",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nickname\": \"Andrei\",\n  \"category\": \"pop\",\n  \"score\": 850\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/leaderboard",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leaderboard"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Leaderboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/leaderboard",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "leaderboard"
+          ]
+        }
+      }
+    }
+  ]
+}
