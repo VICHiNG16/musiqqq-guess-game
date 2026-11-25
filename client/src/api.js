@@ -1,9 +1,44 @@
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-export async function getHealth() {
-  const response = await fetch(`${API_URL}/api/health`);
+async function request(path, options = {}) {
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    throw new Error(data.error || 'Eroare de comunicare cu serverul');
   }
-  return response.json();
+
+  return data;
+}
+
+export function startGame(category) {
+  return request('/api/game/start', {
+    method: 'POST',
+    body: JSON.stringify({ category }),
+  });
+}
+
+export function submitAnswer({ sessionId, roundIndex, selectedId, remainingSeconds }) {
+  return request('/api/game/answer', {
+    method: 'POST',
+    body: JSON.stringify({ sessionId, roundIndex, selectedId, remainingSeconds }),
+  });
+}
+
+export function getLeaderboard() {
+  return request('/api/leaderboard');
+}
+
+export function saveScore({ nickname, category, score }) {
+  return request('/api/leaderboard', {
+    method: 'POST',
+    body: JSON.stringify({ nickname, category, score }),
+  });
 }

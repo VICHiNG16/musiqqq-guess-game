@@ -1,40 +1,84 @@
-import { useEffect, useState } from 'react';
-import { getHealth } from './api.js';
+import { useState } from 'react';
+import { startGame } from './api.js';
+import StartScreen from './StartScreen.jsx';
+import GameScreen from './GameScreen.jsx';
+import ResultsScreen from './ResultsScreen.jsx';
 import './App.css';
 
-const STATUS_LABELS = {
-  checking: 'Se verifică serverul...',
-  ok: 'Server conectat',
-  error: 'Server indisponibil',
-};
-
 export default function App() {
-  const [status, setStatus] = useState('checking');
+  const [screen, setScreen] = useState('start');
+  const [player, setPlayer] = useState({ nickname: '', category: 'pop' });
+  const [session, setSession] = useState(null);
+  const [result, setResult] = useState({ totalScore: 0, correctCount: 0 });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    let active = true;
+  async function handleStart(nickname, category) {
+    setLoading(true);
+    setError('');
+    try {
+      const nextSession = await startGame(category);
+      setPlayer({ nickname, category });
+      setSession(nextSession);
+      setScreen('game');
+    } catch (err) {
+      setError(err.message);
+      setScreen('start');
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    getHealth()
-      .then((data) => {
-        if (active) {
-          setStatus(data?.status === 'ok' ? 'ok' : 'error');
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setStatus('error');
-        }
-      });
+  function handleFinish(finalResult) {
+    setResult(finalResult);
+    setScreen('results');
+  }
 
-    return () => {
-      active = false;
-    };
-  }, []);
+  function handlePlayAgain() {
+    handleStart(player.nickname, player.category);
+  }
+
+  function handleBackToStart() {
+    setScreen('start');
+    setSession(null);
+    setError('');
+  }
 
   return (
-    <main className="app">
-      <h1 className="app__title">Musiqqq the Guess Game</h1>
-      <p className={`status status--${status}`}>{STATUS_LABELS[status]}</p>
-    </main>
+    <div className="app">
+      <div className="container">
+        {screen === 'start' && (
+          <StartScreen
+            initialNickname={player.nickname}
+            initialCategory={player.category}
+            loading={loading}
+            error={error}
+            onStart={handleStart}
+          />
+        )}
+
+        {screen === 'game' && session && (
+          <GameScreen
+            key={session.sessionId}
+            session={session}
+            onFinish={handleFinish}
+            onQuit={handleBackToStart}
+          />
+        )}
+
+        {screen === 'results' && (
+          <ResultsScreen
+            nickname={player.nickname}
+            category={player.category}
+            totalScore={result.totalScore}
+            correctCount={result.correctCount}
+            totalRounds={session?.totalRounds ?? 10}
+            loading={loading}
+            onPlayAgain={handlePlayAgain}
+            onBackToStart={handleBackToStart}
+          />
+        )}
+      </div>
+    </div>
   );
 }
