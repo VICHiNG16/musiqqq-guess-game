@@ -2,14 +2,20 @@ import { CATEGORIES } from '../config.js';
 import { httpError } from '../utils/httpError.js';
 
 const DEEZER_API = 'https://api.deezer.com';
+const REQUEST_TIMEOUT_MS = 8000;
 
 export async function getTracksByCategory(category) {
   const genreId = CATEGORIES[category];
   let response;
 
   try {
-    response = await fetch(`${DEEZER_API}/chart/${genreId}/tracks?limit=100`);
-  } catch {
+    response = await fetch(`${DEEZER_API}/chart/${genreId}/tracks?limit=100`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (err) {
+    if (err?.name === 'TimeoutError' || err?.name === 'AbortError') {
+      throw httpError(504, 'Deezer API raspunde prea greu. Incearca din nou.');
+    }
     throw httpError(502, 'Deezer API indisponibil');
   }
 

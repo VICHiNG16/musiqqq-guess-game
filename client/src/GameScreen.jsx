@@ -11,6 +11,7 @@ export default function GameScreen({ session, onFinish, onQuit }) {
   const [score, setScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [audioNotice, setAudioNotice] = useState('');
   const [volume, setVolume] = useState(75);
   const [error, setError] = useState('');
 
@@ -25,10 +26,14 @@ export default function GameScreen({ session, onFinish, onQuit }) {
     const audio = audioRef.current;
     if (!audio) return undefined;
 
+    setAudioNotice('');
     audio.src = round.previewUrl;
     audio.currentTime = 0;
     audio.volume = volume / 100;
-    audio.play().catch(() => {
+    audio.play().catch((err) => {
+      if (err?.name === 'NotAllowedError') {
+        setAudioNotice('blocked');
+      }
       setIsPlaying(false);
     });
 
@@ -74,9 +79,17 @@ export default function GameScreen({ session, onFinish, onQuit }) {
     if (!audio || phase !== 'playing') return;
 
     if (audio.paused) {
-      audio.play().catch(() => {
-        setIsPlaying(false);
-      });
+      audio
+        .play()
+        .then(() => {
+          setAudioNotice('');
+        })
+        .catch((err) => {
+          if (err?.name === 'NotAllowedError') {
+            setAudioNotice('blocked');
+          }
+          setIsPlaying(false);
+        });
     } else {
       audio.pause();
     }
@@ -165,9 +178,18 @@ export default function GameScreen({ session, onFinish, onQuit }) {
       <audio
         ref={audioRef}
         preload="auto"
-        onPlay={() => setIsPlaying(true)}
+        onPlay={() => {
+          setIsPlaying(true);
+          setAudioNotice('');
+        }}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}
+        onError={() => {
+          if (audioRef.current?.getAttribute('src')) {
+            setAudioNotice('error');
+            setIsPlaying(false);
+          }
+        }}
       />
 
       <header className="stack-md">
@@ -229,9 +251,19 @@ export default function GameScreen({ session, onFinish, onQuit }) {
                 </svg>
               )}
             </button>
-            <span className="body-sm text-muted">
-              {isPlaying ? 'Se reda fragmentul audio...' : 'Redare oprita'}
-            </span>
+            {audioNotice === 'blocked' ? (
+              <span className="body-sm audio-notice">
+                Apasa Play pentru a porni sunetul
+              </span>
+            ) : audioNotice === 'error' ? (
+              <span className="body-sm feedback--error">
+                Fragmentul audio nu a putut fi incarcat
+              </span>
+            ) : (
+              <span className="body-sm text-muted">
+                {isPlaying ? 'Se reda fragmentul audio...' : 'Redare oprita'}
+              </span>
+            )}
           </div>
 
           <div className="volume">

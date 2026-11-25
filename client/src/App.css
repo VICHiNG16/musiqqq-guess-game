@@ -190,6 +190,35 @@ input {
   outline-offset: 1px;
 }
 
+.input--error {
+  border-color: var(--color-error);
+}
+
+.input--error:focus {
+  border-color: var(--color-error);
+}
+
+.field-error {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--color-on-error-tint);
+}
+
+.loading-text {
+  text-align: center;
+}
+
+.audio-notice {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.category-option:disabled,
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

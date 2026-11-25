@@ -11,6 +11,7 @@ export default function StartScreen({
   onStart,
 }) {
   const [nickname, setNickname] = useState(initialNickname);
+  const [nicknameError, setNicknameError] = useState('');
   const [category, setCategory] = useState(initialCategory || 'pop');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [rows, setRows] = useState([]);
@@ -36,8 +37,15 @@ export default function StartScreen({
 
   function handleSubmit(event) {
     event.preventDefault();
+    if (loading) return;
+
     const trimmed = nickname.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed) {
+      setNicknameError('Introdu un nume de jucator pentru a incepe.');
+      return;
+    }
+
+    setNicknameError('');
     onStart(trimmed, category);
   }
 
@@ -68,12 +76,25 @@ export default function StartScreen({
               <span className="label-md">Nume jucator</span>
               <input
                 type="text"
-                className="input"
+                className={`input${nicknameError ? ' input--error' : ''}`}
                 placeholder="Introdu numele"
                 maxLength={20}
+                disabled={loading}
                 value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
+                aria-invalid={Boolean(nicknameError)}
+                aria-describedby={nicknameError ? 'nickname-error' : undefined}
+                onChange={(e) => {
+                  setNickname(e.target.value);
+                  if (nicknameError) {
+                    setNicknameError('');
+                  }
+                }}
               />
+              {nicknameError && (
+                <span id="nickname-error" className="field-error">
+                  {nicknameError}
+                </span>
+              )}
             </label>
 
             <div className="field">
@@ -91,6 +112,7 @@ export default function StartScreen({
                       type="button"
                       role="radio"
                       aria-checked={selected}
+                      disabled={loading}
                       className={`category-option${
                         selected ? ' category-option--selected' : ''
                       }`}
@@ -124,13 +146,20 @@ export default function StartScreen({
               </div>
             )}
 
-            <button
-              type="submit"
-              className="btn btn--primary btn--block"
-              disabled={loading || !nickname.trim()}
-            >
-              {loading ? 'Se incarca melodiile...' : 'Incepe jocul'}
-            </button>
+            <div className="stack-xs">
+              <button
+                type="submit"
+                className="btn btn--primary btn--block"
+                disabled={loading}
+              >
+                {loading ? 'Se pregateste jocul...' : 'Incepe jocul'}
+              </button>
+              {loading && (
+                <p className="body-sm text-muted loading-text" role="status">
+                  Se incarca melodiile...
+                </p>
+              )}
+            </div>
           </form>
         </article>
 
